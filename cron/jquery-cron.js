@@ -180,12 +180,45 @@
     };
 
     // ------------------ internal functions ---------------
+    
+    function prepareCronComponent (p) {
+        if (!p) {
+            return "*";
+        }
+        if (typeof p === 'object' && p.length > 1) {
+            var i = 1, len = p.length, isSequence = true;
+            for (i; i < len; i++) {
+                if ((parseInt(p[i-1], 10) + 1) !== parseInt(p[i], 10)) {
+                    isSequence = false;
+                    break;
+                }
+            }
+            if (isSequence){
+                return p[0] + '-' + p[len-1];
+            }
+        }
+        return p;
+    }
+    
+    function hyphenPeriodToCommaPeriod (p){
+        if (p.indexOf('-') > 0) {
+            var i, len, data = p.split('-');
+            p = [];
+            i = parseInt(data[0], 10);
+            len = parseInt (data[1], 10) + 1;
+            for (; i < len; i++) {
+                p.push(i);
+            }
+            return p.join(',');        
+        }
+        return p;
+    }
 
     function fullCronParser(cron_str) {
         // 0. internal variables
         var j, v, parts,
             cleanedCron = [],
-            singleRegex = /^((\*(\/\d+)?)|(\d+(,\d+)*))$/,
+            singleRegex = /^((\*(\/\d+)?)|(\d+(,\d+)*)|(\d+(-\d+)*))$/,
             item = {
                 valid: false,
                 cron_str: cron_str
@@ -214,11 +247,16 @@
                 // replace the value by a placeholder
                 v = '*';
             }
+            
+            // prepare value
+            if (v.indexOf('-') > 0) {
+                v = hyphenPeriodToCommaPeriod(v);
+            } 
+            
             // set value
             if (v.indexOf(',') > 0) {
                 item[indexToField[j]] = v.split(',');
             } else {
-
                 item[indexToField[j]] = [v];
             }
             // prepare a cleaned cron string for geting cron type on phase 4
@@ -299,12 +337,14 @@
                 // we assume this only happens when customValues is set
                 return selectedPeriod;
         }
-        // treat not selected values
-        if (!min) { min = "*"; }
-        if (!hour) { hour = "*"; }
-        if (!day) { day = "*"; }
-        if (!month) { month = "*"; }
-        if (!dow) { dow = "*"; }
+        
+        // final value treatment
+        min     = prepareCronComponent(min);
+        hour    = prepareCronComponent(hour);
+        day     = prepareCronComponent(day);
+        month   = prepareCronComponent(month);
+        dow     = prepareCronComponent(dow);
+
         // create cron string
         return [min, hour, day, month, dow].join(" ");
     }
