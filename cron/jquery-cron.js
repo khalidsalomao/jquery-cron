@@ -384,7 +384,7 @@
 
             htmlText = "<span class='cron-period'>Every ";
             if (o.allowIntervalExpression) {
-                htmlText += "<input type='number' class='cron-period-repeat' min='1' max='10000' style='width:32px;' step='1' value='1'/> ";                
+                htmlText += "<input type='number' class='cron-period-repeat' min='1' max='10000' style='width:40px;' step='1' value='1'/> ";                
             }
             htmlText += "<select name='cron-period'>" + custom_periods + str_opt_period + "</select> </span>";
             
